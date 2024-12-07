@@ -1,0 +1,48 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 15.09.2024 14:16:29
+// Design Name: 
+// Module Name: temp_binary_project
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module temp_binary_project(
+    input i1,
+    input i2,
+    input i3,
+    input i4,
+    input i5,
+    input i6,
+    input i7,
+    inout sum1,
+    inout sum2,
+    output b0,
+    output b1,
+    output b2,
+    inout cout1,
+    inout cout2,
+    inout cout3,
+    input cout4,
+    input cout5
+    );
+    
+    full_adder d1(i6,i5,i4,sum1,cout1);
+    full_adder d2(i3,i2,i1,sum2,cout2);
+    full_adder d3(i7,sum1,sum2,b0,cout3);
+    full_adder d4(cout3,cout1,cout2,b1,b2);
+   
+endmodule
