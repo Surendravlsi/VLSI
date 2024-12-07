@@ -1,0 +1,43 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 07.12.2024 15:30:48
+// Design Name: 
+// Module Name: 8_SEG_DISPLAY
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module DISPLAY_7_SEG(
+   input  wire[0:3] NUM,
+   output reg[0:6] SEG
+    );
+    
+ always@(NUM)
+ begin
+ case(NUM)
+               //gfedcba
+ NUM==4'b0000:SEG=7'b1000000;
+ NUM==4'b0001:SEG=7'b1111001;
+ NUM== 4'b0010:SEG=7'b0100100;
+ NUM==  4'b0011:SEG=7'b0110000;
+ NUM== 4'b0100:SEG=7'b0011001;
+ NUM== 4'b0101:SEG=7'b0010010;
+ NUM==  4'b0111:SEG=7'b1111000;
+ NUM==4'b1000:SEG=7'b0000000;
+ NUM== 4'b1001:SEG=7'b0010000;
+ endcase
+ end
+ endmodule
