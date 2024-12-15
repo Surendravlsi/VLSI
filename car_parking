@@ -1,0 +1,51 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 15.12.2024 09:56:47
+// Design Name: 
+// Module Name: car_parking
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module car_parking(
+    input [0:7] cars,
+    output [0:6] seg,
+    output [7:0] AN
+    
+    );
+    reg [6:0] SEG;
+    reg [3:0] NUM;
+    always@(cars)
+    NUM= cars[7]+cars[6]+cars[5]+cars[4]+cars[3]+cars[2]+cars[1]+cars[0];
+    assign AN=8'b11111110;
+    
+    
+    always@(NUM)
+ begin
+ case(NUM)
+                   //gfedcba
+ NUM==4'b0000:SEG=7'b1000000;
+ NUM==4'b0001:SEG=7'b1111001;
+ NUM==4'b0010:SEG=7'b0100100;
+ NUM==4'b0011:SEG=7'b0110000;
+ NUM==4'b0100:SEG=7'b0011001;
+ NUM==4'b0101:SEG=7'b0010010;
+ NUM==4'b0111:SEG=7'b1111000;
+ NUM==4'b1000:SEG=7'b0000000;
+ NUM==4'b1001:SEG=7'b0010000;
+ endcase
+ end
+ endmodule
