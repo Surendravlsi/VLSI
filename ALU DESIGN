@@ -1,0 +1,43 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 25.12.2024 16:20:36
+// Design Name: 
+// Module Name: ALU
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module ALU(A,B,OP,OUT);
+    input wire [0:3] A;
+    input wire[0:3] B;
+    output reg[0:3] OUT;
+    input wire [0:2] OP;
+    
+    always@(*)
+    begin
+    case(OP)
+   3'b000:OUT=0;
+   3'b001:OUT=A+B;
+   3'b010:OUT=A-B;
+   3'b011:OUT=A&B;
+   3'b100:OUT=A|B;
+   3'b101:OUT=~A;
+   3'b110:OUT=~B;
+   3'b111:OUT=0;
+   endcase
+   end
+   
+endmodule
