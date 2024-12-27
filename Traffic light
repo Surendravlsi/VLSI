@@ -19,6 +19,9 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+// ps=present state
+// sec=seconds(time)
+//m1,m2,mt,s (directions of the road)
 
 module Traffic_light(
     input  clk,
