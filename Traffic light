@@ -119,7 +119,7 @@ module Traffic_light(
      s6:
     if(count<sec2)
     begin
-    ps<=s2;
+    ps<=s6;
     count<=(count+1);
     end
     else
