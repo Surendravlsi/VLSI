@@ -1,0 +1,50 @@
+module tb_MIPS;
+  reg         clk;
+  reg         rst;
+  wire [31:0] instr, addr, result;
+  wire        mem_write, mem_read;
+  wire [3:0]  alu_control;
+  wire [5:0]  funct;
+  wire [4:0]  write_reg, read_reg1, read_reg2;
+  
+  // Instantiate MIPS
+  MIPS uut (
+    .clk(clk),
+    .rst(rst),
+    .instr(instr),
+    .addr(addr),
+    .result(result),
+    .mem_write(mem_write),
+    .mem_read(mem_read),
+    .alu_control(alu_control),
+    .funct(funct),
+    .write_reg(write_reg),
+    .read_reg1(read_reg1),
+    .read_reg2(read_reg2)
+  );
+  
+  // Clock generation: period = 10 ns
+  initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+  end
+  
+  // Test bench stimulus
+  initial begin
+    // Start with reset asserted.
+    rst = 1;
+    #10;
+    rst = 0;
+    // Wait a few ns then force mem_write_reg high to activate the enable condition.
+    #5;
+    uut.mem_write_reg = 1'b1;
+    #100;
+    $finish;
+  end
+  
+  // Monitor outputs
+  initial begin
+    $monitor("Time=%0t | rst=%b | instr=%h | addr=%h | result=%h | mem_write=%b | mem_read=%b",
+             $time, rst, instr, addr, result, mem_write, mem_read);
+  end
+endmodule
