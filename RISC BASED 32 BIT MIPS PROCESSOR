@@ -1,0 +1,515 @@
+module MIPS (
+    input clk, rst,
+    output [31:0] instr, addr, result,  
+    output mem_write, mem_read,
+    output [3:0] alu_control,
+    output [5:0] funct,
+    output [4:0] write_reg, read_reg1, read_reg2
+);
+
+    // Internal Registers and wires
+    reg [31:0] instr_reg, addr_reg, result_reg;
+    reg mem_write_reg, mem_read_reg;
+    reg [3:0] alu_control_reg;
+    reg [5:0] funct_reg;
+    reg [4:0] write_reg_reg, read_reg1_reg, read_reg2_reg;
+
+    // Clock Gating Control
+    wire en;
+    assign en = (mem_write_reg | mem_read_reg) ? 1'b1 : 1'b0;  // Enable logic
+
+    // Assign output signals
+    assign instr = instr_reg;
+    assign addr = addr_reg;
+    assign result = result_reg;
+    assign mem_write = mem_write_reg;
+    assign mem_read = mem_read_reg;
+    assign alu_control = alu_control_reg;
+    assign funct = funct_reg;
+    assign write_reg = write_reg_reg;
+    assign read_reg1 = read_reg1_reg;
+    assign read_reg2 = read_reg2_reg;
+
+    // simulated  proessor execution
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            instr_reg <= 32'b0;
+            addr_reg <= 32'b0;
+            result_reg <= 32'b0;
+            mem_write_reg <= 1'b0;
+            mem_read_reg <= 1'b0;
+            alu_control_reg <= 4'b0;
+            funct_reg <= 6'b0;
+            write_reg_reg <= 5'b0;
+            read_reg1_reg <= 5'b0;
+            read_reg2_reg <= 5'b0;
+            end
+            else if (en)
+            begin
+            instr_reg <= instr_reg + 4;
+            addr_reg <= addr_reg + 4;
+            result_reg <= addr_reg + instr_reg; 
+        end
+    end
+endmodule
+
+module alu(
+
+   input [31:0]a,b,
+   input [1:0]aluop,
+   input [5:0]funct,
+   output reg [31:0]op
+    );
+    
+    
+    always @(*)
+    begin
+    if(aluop == 2'b10)
+    begin
+    case (funct)
+     6'b011000:op<=a*b;
+    //6'b100101:op<=A|B;
+    6'b100000:op<=a+b;
+    6'b100010:op<=a-b;
+    6'b100000:op<=a<<b;
+    6'b000010:op<=a>>b;
+    endcase
+    end
+    
+    else if(aluop==2'b00) begin
+    op=(a+b); end
+    
+    else if(aluop==2'b11)begin
+    op<= a>>b;//A||B;
+    end
+    
+    
+    
+    end
+endmodule
+
+module control_unit(
+input [5:0]opcode,
+output reg regdst,regwrite, alusrc, memread,memwrite,mem_to_reg,
+output reg [1:0]aluop
+);
+
+always @(*)
+begin
+if(opcode == 6'b100011)
+begin //load
+regdst<=1'b0;
+regwrite<=1'b1;
+alusrc<=1'b1;
+aluop<=2'b00;
+memread<=1'b1;
+memwrite<=1'b0;
+mem_to_reg<=1'b1;
+end
+
+else if(opcode==6'b101011)
+begin   //store
+regdst<=1'bx;
+regwrite<=1'b0;
+alusrc<=1'b1;
+aluop<=2'b00;
+memread<=1'b0;
+memwrite<=1'b1;
+mem_to_reg<=1'bx;
+end
+
+else if(opcode==6'b000010)
+begin   //jump
+regdst<=1'bx;
+regwrite<=1'b0;
+alusrc<=1'b0;
+aluop<=2'b01;
+memread<=1'b0;
+memwrite<=1'b0;
+mem_to_reg<=1'bx;
+end
+
+else if(opcode==6'b0)
+begin  //r
+regdst<=1'b1;
+regwrite<=1'b1;
+alusrc<=1'b0;
+aluop<=2'b10;
+memread<=1'b0;
+memwrite<=1'b0;
+mem_to_reg<=1'b0;
+end
+
+else if(opcode==6'b000001)
+begin
+regdst<=1'b0;
+regwrite<=1'b1;
+alusrc<=1'b1;
+aluop<=2'b11;
+memread<=1'b0;
+memwrite<=1'b0;
+mem_to_reg<=1'b0;
+end
+
+end
+
+endmodule
+
+module data_memory(
+
+input rst, memread,memwrite,
+input [31:0]alu_result,write_data,
+output reg read_data
+    );
+  reg [31:0]mem[31:0];
+  integer i;
+  
+  always @(*)
+  begin
+  
+  if(rst)
+  begin
+   for(i =0;i<=31;i=i+1)
+   begin
+   mem[i]<=i;
+   end
+   
+  end
+  
+  if(memwrite)
+begin
+mem[alu_result] <= write_data;
+end 
+else if(memread)
+begin
+read_data <= mem[alu_result];
+end
+end 
+
+
+endmodule
+
+
+module ex_mem(input clk,
+input memwrite,memread ,memtoreg,regwrite,
+output reg memwriteo,  memreado, memtorego ,regwriteo , 
+input [4:0]writereg,
+input [31:0]alu_result, read_reg2,
+output reg [31:0]alu_resulto, read_reg2o, 
+output reg [4:0]rdo);
+always@(posedge clk)
+begin 
+   rdo<=writereg;
+   alu_resulto<=alu_result;
+   read_reg2o<=read_reg2;
+   regwriteo<=regwrite;
+   memwriteo<=memwrite;
+   memreado<=memread;
+   memtorego<=memtoreg;
+      
+end
+endmodule
+
+module id_ex(
+
+input clk, alusrc,memwrite, memread,mem_to_reg,
+input [31:0]read_reg1,read_reg2,sign_extend,regwrite,regdes,
+output reg [31:0]read_reg1o,read_reg2o,sign_extendo,regwriteo,
+output reg regdeso,alusrco, memwriteo, memreado, mem_to_rego,
+input [1:0]aluop,
+output reg [1:0]aluopo,
+input [4:0]rs,rt,rd,
+output reg [4:0]rso,rto,rdo,
+input [5:0]funct,
+output reg [5:0]functo
+);
+
+always @(*)
+begin
+read_reg1o<=read_reg1;
+   read_reg2o<=read_reg2;
+   sign_extendo<=sign_extend;
+   regwriteo<=regwrite;
+   regdeso<=regdes;
+   alusrco<=alusrc;
+   aluopo<=aluop;
+   memwriteo<=memwrite;
+   memreado<=memread;
+   mem_to_rego<=mem_to_reg;
+   rso<=rs;
+   rto<=rt;
+   rdo<=rd;
+   functo<=funct;
+
+
+end
+endmodule
+
+module if_id(input clk,
+            input [31:0]ins_code,
+            output reg [31:0]ins_out
+    );
+    always @(posedge clk)
+    begin
+    ins_out <=ins_code;
+    end
+endmodule
+
+
+module ins_mem(
+input clk,
+input rst,
+input stall_signal,
+output [31:0]ins_code
+);
+reg [31:0]pc;
+reg [7:0]mem[120:0];
+
+assign ins_code={mem[pc+3],mem[pc+2],mem[pc+1],mem[pc]};
+always @(posedge clk)
+begin
+if(rst == 1'b1)
+begin
+pc <=32'b0;
+
+//addi
+ mem[0]<=8'b00100000;
+ mem[1]<=8'b00000001;
+ mem[2]<=8'b00000000;
+ mem[3]<=8'b00011110;
+ //sw
+ mem[4]<=8'b10101100;
+ mem[5]<=8'b00000001;
+ mem[6]<=8'b00000000;
+ mem[7]<=8'b00000000;
+ 
+ //lw
+ mem[8]<=8'b10001100;
+ mem[9]<=8'b00000011;
+ mem[10]<=8'b00000000;
+ mem[11]<=8'b00000000;
+ 
+ //srl
+ mem[12]<=8'b00000000;
+ mem[13]<=8'b01100000;
+ mem[14]<=8'b00111000;
+ mem[15]<=8'b01000010;
+ 
+ //sll
+ mem[16]<=8'b00000000;
+ mem[17]<=8'b11100000;
+ mem[18]<=8'b01000000;
+ mem[19]<=8'b01000000;
+ 
+ //addi
+ mem[20]<=8'b00100000;
+ mem[21]<=8'b00000010;
+ mem[22]<=8'b00000000;
+ mem[23]<=8'b00000001;
+ 
+ //addi
+ mem[24]<=8'b00100000;
+ mem[25]<=8'b01000010;
+ mem[26]<=8'b00000000;
+ mem[27]<=8'b00000001;
+ //sw
+ 
+ mem[28]<=8'b10101100;
+ mem[29]<=8'b00000010;
+ mem[30]<=8'b00000000;
+ mem[31]<=8'b00000000;
+ 
+ //sub 
+ mem[32]<=8'b00000000;
+ mem[33]<=8'b00100010;
+ mem[34]<=8'b00011000;
+ mem[35]<=8'b00100010;
+ 
+ // beq
+ mem[36]<=8'b00010000;
+ mem[37]<=8'b00100010;
+ mem[38]<=8'b00000000;
+ mem[39]<=8'b00000001;
+ 
+ //j 6
+ mem[40]<=8'b00001000;
+ mem[41]<=8'b00000000;
+ mem[42]<=8'b00000000;
+ mem[43]<=8'b00000110;
+ 
+ //sw
+ 
+ mem[44]<=8'b10101100;
+ mem[45]<=8'b00000010;
+ mem[46]<=8'b00000000;
+ mem[47]<=8'b00000011;
+ 
+ //lw
+ mem[48]<=8'b10001100;
+ mem[49]<=8'b00001010;
+ mem[50]<=8'b00000000;
+ mem[51]<=8'b00000011;
+
+
+end
+if(stall_signal & ~rst)
+begin
+pc<=pc+4;
+end
+
+if(~stall_signal & ~rst)
+begin
+pc<=pc;
+end
+
+end
+endmodule
+
+module mem_wb(input clk, 
+input mem_to_reg ,regwrite ,  
+output reg mem_to_rego , regwriteo, 
+input [4:0]writereg,
+input [31:0]readdata , alu_result , 
+output reg [31:0] readdatao , alu_resulto , 
+output reg [4:0]rdo
+    );
+    
+    always@(posedge clk)
+begin 
+   regwriteo<=regwrite;
+   mem_to_rego<=mem_to_reg;
+   readdatao<=readdata;
+   alu_resulto<=alu_result;
+   rdo<=writereg;
+   
+end
+endmodule
+
+module mux_s1(
+input a,b,s,
+output op
+    );
+assign op = s?a:b;
+endmodule
+
+module mux_s2(
+input [1:0]a,b,
+input s,
+output reg [1:0]op
+    );
+always @(*)
+begin
+case(s)
+1'b0: op <=a;
+1'b1: op <=b;
+endcase
+end
+    
+endmodule
+
+module mux_s32(
+input [31:0]a,b,
+input s,
+output reg [31:0]op
+    );
+always @(*)
+begin
+case(s)
+1'b0: op <=a;
+1'b1: op <=b;
+endcase
+end
+    
+endmodule
+
+module mux4_s(
+input [31:0]a,b,c,
+input [1:0]s,
+output reg [31:0]op
+    );
+always @(*)
+begin
+case(s)
+
+2'b11 : op<=a;
+2'b10 : op<=b;
+2'b01 : op<=c;
+endcase
+end
+endmodule
+
+module stall_unit(input rst,input memread, input[4:0]id_ex_rt,input[4:0]if_id_rs,input[4:0]if_id_rt ,output reg stall_signal);
+//assign stall_signal= ((memread==1)&((id_ex_rt==if_id_rs)|(id_ex_rt==if_id_rt)))?0:1;
+always@(*)
+begin
+if(rst)
+begin
+stall_signal=1'b1;
+//control_stall=1'b1;
+end
+if(id_ex_rt==5'b0)
+stall_signal=1;
+
+else if((memread==1)&((id_ex_rt==if_id_rs)|(id_ex_rt==if_id_rt)))
+begin
+//control_stall=1'b0;
+stall_signal=1'b0;
+
+end
+else
+stall_signal=1'b1;
+//control_stall=1'b1;
+end
+endmodule
+
+module forward_unit(input [4:0]id_ex_rs,input [4:0]id_ex_rt,input [4:0]ex_mem_rd,input [4:0]mem_wb_rd,
+input ex_mem_regwrite,input mem_wb_regwrite,output reg [1:0]ctrl_rs, output reg [1:0] ctrl_rt);
+always@(*) begin
+ ctrl_rs<=2'b11;
+ ctrl_rt<=2'b11;
+  if ((ex_mem_regwrite==1)&(ex_mem_rd==id_ex_rs))
+  ctrl_rs<=2'b10;
+  if((ex_mem_regwrite==1)&(ex_mem_rd==id_ex_rt))
+  ctrl_rt<=2'b10;
+   
+  if((mem_wb_regwrite==1)&(mem_wb_rd==id_ex_rs)&!((ex_mem_regwrite==1)&(ex_mem_rd==id_ex_rs)))
+  ctrl_rs<=2'b01;
+  
+  if((mem_wb_regwrite==1)&(mem_wb_rd==id_ex_rt)&!((ex_mem_regwrite==1)&(ex_mem_rd==id_ex_rt)))
+  ctrl_rt<=2'b01;
+
+ 
+ end
+ endmodule
+
+module reg_file(
+input rst,
+input [4:0]src1,src2,dst,
+input regwrite,
+input [31:0]write_data,read_data1,read_data2
+    );
+
+reg [31:0]mem[31:0];
+assign read_data1 = mem[src1];
+assign read_data2 = mem[src2];
+integer i;
+always @(*)
+begin
+
+if(rst)
+begin
+
+for(i = 0;i<=31;i=i+1)
+begin
+mem[i]<=i;
+end
+
+end
+
+if(regwrite)
+begin
+mem[dst]<=write_data;
+end
+
+end
+endmodule
