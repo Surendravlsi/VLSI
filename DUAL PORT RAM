@@ -1,0 +1,46 @@
+module Dual_port_ram(
+input clk_a,clk_b,wren_a,wren_b,rden_a,rden_b,
+input rst,
+input [9:0]address_a,address_b,
+input  [7:0] data_a,data_b,
+output reg [7:0] q_a,q_b
+    );
+ 
+  reg [7:0] ram [511:0];
+  
+ wire valid_addr_a=(address_a<10'd512);
+ wire valid_addr_b=(address_b<10'd512);
+ 
+ //for port A//
+ always@(posedge clk_a)
+ begin
+ if(rst)
+ q_a<=8'h00;
+ else if (!valid_addr_a)
+ $display ("error:address_a_is_out_of_range",address_a);
+ else
+ begin
+ if(wren_a)
+ ram[address_a]<=data_a;
+ if (rden_a)
+ q_a<=ram[address_a];
+ end
+ end
+                    
+ //for portb//
+ always@(posedge clk_b)
+ begin
+ if(rst)
+ q_b<=8'h00;
+ else if (!valid_addr_b)
+ $display ("error:address_b_is_out_of_range",address_b);
+ else
+ begin
+ if(wren_b)
+ ram[address_b]<=data_b;
+ if (rden_b)
+ q_b<=ram[address_b];
+ end
+ end
+ 
+endmodule
