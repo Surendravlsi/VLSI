@@ -1,0 +1,86 @@
+`timescale 1ns / 1ps
+
+module Dual_port_ram_tb;
+
+    reg clk_a, clk_b;
+    reg wren_a, wren_b;
+    reg rden_a, rden_b;
+    reg rst;
+    reg [9:0] address_a, address_b;
+    reg [7:0] data_a, data_b;
+    wire [7:0] q_a, q_b;
+
+    // Instantiate the dual port RAM
+    Dual_port_ram uut (
+        .clk_a(clk_a), .clk_b(clk_b),
+        .wren_a(wren_a), .wren_b(wren_b),
+        .rden_a(rden_a), .rden_b(rden_b),
+        .rst(rst),
+        .address_a(address_a), .address_b(address_b),
+        .data_a(data_a), .data_b(data_b),
+        .q_a(q_a), .q_b(q_b)
+    );
+
+  
+    initial begin
+        clk_a = 0;
+        forever #5 clk_a = ~clk_a;  // 10ns clock
+    end
+
+    initial begin
+        clk_b = 0;
+        forever #7 clk_b = ~clk_b;  // 14ns clock (different from clk_a)
+    end
+
+    
+    initial begin
+        rst = 1; wren_a = 0; wren_b = 0;
+        rden_a = 0; rden_b = 0;
+        address_a = 0; address_b = 0;
+        data_a = 0; data_b = 0;
+
+        // Reset pulse
+        #12 rst = 0;
+
+        // Write to port A
+        @(posedge clk_a);
+        address_a = 10'd5;
+        data_a = 8'hAA;
+        wren_a = 1;
+
+        @(posedge clk_a);
+        wren_a = 0;
+
+        // Write to port B
+        @(posedge clk_b);
+        address_b = 10'd10;
+        data_b = 8'h55;
+        wren_b = 1;
+
+        @(posedge clk_b);
+        wren_b = 0;
+
+        // Read from port A
+        @(posedge clk_a);
+        rden_a = 1;
+        address_a = 10'd5;
+
+        @(posedge clk_a);
+        rden_a = 0;
+
+        // Read from port B
+        @(posedge clk_b);
+        rden_b = 1;
+        address_b = 10'd10;
+
+        @(posedge clk_b);
+        rden_b = 0;
+
+        //outputs
+        #10;
+        $display("q_a = %h ", q_a);
+        $display("q_b = %h ", q_b);
+
+        #20 $stop;
+    end
+endmodule
