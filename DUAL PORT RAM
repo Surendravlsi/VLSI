@@ -6,7 +6,7 @@ input  [7:0] data_a,data_b,
 output reg [7:0] q_a,q_b
     );
  
-  reg [7:0] ram [511:0];
+ (*RAM_STYLE="BLOCK"*) reg [7:0] ram [511:0];    //THIS INSTRUCTS SYNTHESIS TOOL TO MAP ARRAY TO BLOCK RAM WHICH IS FAR EFFICIENT THAN LUT RAM//
   
  wire valid_addr_a=(address_a<10'd512);
  wire valid_addr_b=(address_b<10'd512);
