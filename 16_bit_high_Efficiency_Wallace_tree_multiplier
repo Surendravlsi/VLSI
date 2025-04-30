@@ -1,0 +1,67 @@
+module half_adder(input a, input b, output sum, output carry);
+    assign sum = a ^ b;
+    assign carry = a & b;
+endmodule
+
+module full_adder(input a, input b, input cin, output sum, output carry);
+    assign sum = a ^ b ^ cin;
+    assign carry = (a & b) | (b & cin) | (cin & a);
+endmodule
+
+module pp_16bit(
+    input [3:0] a, b,
+    output [7:0] p
+);
+    // Partial products
+    wire pp00 = a[0] & b[0];
+    wire pp01 = a[1] & b[0];
+    wire pp02 = a[2] & b[0];
+    wire pp03 = a[3] & b[0];
+
+    wire pp10 = a[0] & b[1];
+    wire pp11 = a[1] & b[1];
+    wire pp12 = a[2] & b[1];
+    wire pp13 = a[3] & b[1];
+
+    wire pp20 = a[0] & b[2];
+    wire pp21 = a[1] & b[2];
+    wire pp22 = a[2] & b[2];
+    wire pp23 = a[3] & b[2];
+
+    wire pp30 = a[0] & b[3];
+    wire pp31 = a[1] & b[3];
+    wire pp32 = a[2] & b[3];
+    wire pp33 = a[3] & b[3];
+
+    // Stage 1
+    wire s1, c1, s2, c2, s3, c3, s4, c4;
+    half_adder ha1(pp10, pp01, s1, c1);
+    full_adder fa1(pp11, pp02, c1, s2, c2);
+    full_adder fa2(pp12, pp03, c2, s3, c3);
+    half_adder ha2(pp13, c3, s4, c4);
+
+    // Stage 2
+    wire s5, c5, s6, c6, s7, c7, s8, c8;
+    half_adder ha3(pp20, s2, s5, c5);
+    full_adder fa3(pp21, s3, c5, s6, c6);
+    full_adder fa4(pp22, s4, c6, s7, c7);
+    full_adder fa5(pp23, c4, c7, s8, c8);
+
+    // Stage 3
+    wire s9, c9, s10, c10, s11, c11, s12, c12;
+    half_adder ha4(pp30, s6, s9, c9);
+    full_adder fa6(pp31, s7, c9, s10, c10);
+    full_adder fa7(pp32, s8, c10, s11, c11);
+    full_adder fa8(pp33, c8, c11, s12, c12);
+
+    // Assign final product bits
+    assign p[0] = pp00;
+    assign p[1] = s1;
+    assign p[2] = s5;
+    assign p[3] = s9;
+    assign p[4] = s10;
+    assign p[5] = s11;
+    assign p[6] = s12;
+    assign p[7] = c12;
+
+endmodule
