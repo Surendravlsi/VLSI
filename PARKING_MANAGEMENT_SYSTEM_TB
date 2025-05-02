@@ -1,0 +1,25 @@
+module TB_PARKING_MANAGEMENT_SYSTEM();
+    reg [0:7] cars;
+    wire [0:6] seg;
+    wire [7:0] AN;
+    wire [3:0] NUM;
+    
+   PARKINGA_MANAGEMENT_SYSTEM uut(.cars(cars),.seg(seg),.AN(AN),.NUM(NUM));
+  
+  initial begin
+  #50
+  cars=7'b0010000;
+  #50
+  cars=7'b0010100;
+  #50
+  cars=7'b1010010;
+  #50
+  cars=7'b0010000;
+  #50
+  cars=7'b1010110;
+  #50
+  cars=7'b0110110;
+  #50
+  $finish;
+  end
+endmodule
