@@ -1,0 +1,40 @@
+module APB_top(
+
+    input PCLK,
+    input PRESETn,
+    input PRDATA,
+    output[7:0] PADDR,PWDATA,PRDATA1,PRDATA2,
+    output      PWRITE,PENABLE,PSEL1,PSEL2,PREADY1, PREADY2);
+
+    APB_master master  (
+        .PCLK(PCLK), .PRESETn(PRESETn),
+        .PADDR(PADDR), .PWDATA(PWDATA),
+        .PWRITE(PWRITE), .PENABLE(PENABLE),
+        .PSEL1(PSEL1), .PSEL2(PSEL2),
+        .PRDATA(PRDATA),
+        .PREADY(PSEL1 ? PREADY1 : PREADY2)
+    );
+
+    APB_decoder decoder (
+        .PADDR(PADDR),
+        .PSEL1(PSEL1),
+        .PSEL2(PSEL2)
+    );
+
+   APB_slave slave1 (
+        .PCLK(PCLK), .PRESETn(PRESETn),
+        .PSEL(PSEL1), .PENABLE(PENABLE),
+        .PWRITE(PWRITE), .PADDR(PADDR), .PWDATA(PWDATA),
+        .PRDATA(PRDATA1), .PREADY(PREADY1)
+    );
+
+    APB_slave slave2(
+        .PCLK(PCLK), .PRESETn(PRESETn),
+        .PSEL(PSEL2), .PENABLE(PENABLE),
+        .PWRITE(PWRITE), .PADDR(PADDR), .PWDATA(PWDATA),
+        .PRDATA(PRDATA2), .PREADY(PREADY2)
+    );
+    assign PRDATA = (PSEL1) ? PRDATA1 :
+                    (PSEL2) ? PRDATA2 : 8'b0;
+endmodule
+ 

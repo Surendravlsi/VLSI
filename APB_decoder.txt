@@ -1,0 +1,10 @@
+module APB_decoder(
+
+    input  [7:0] PADDR,
+    output       PSEL1,
+    output       PSEL2
+);
+    assign PSEL1 = (PADDR[7:4] == 4'h1) ? 1'b1 : 1'b0;
+    assign PSEL2 = (PADDR[7:4] == 4'h2) ? 1'b1 : 1'b0;
+endmodule
+

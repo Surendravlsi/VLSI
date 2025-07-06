@@ -1,0 +1,46 @@
+module APB_tb;
+
+  reg PCLK;
+  reg PRESETn;
+  reg PRDATA;
+   wire [7:0] PADDR,PWDATA,PRDATA1,PRDATA2;
+   wire     PWRITE,PENABLE,PSEL1,PSEL2,PREADY1, PREADY2;
+  // Instantiate DUT
+  APB_top dut (
+    .PCLK(PCLK),
+    .PRESETn(PRESETn),
+     .PADDR(PADDR),
+     .PWDATA(PWDATA),
+     .PRDATA1(PRDATA1),
+     .PRDATA2(PRDATA2),
+      .PWRITE(PWRITE),
+      .PENABLE(PENABLE),
+      .PSEL1(PSEL1),
+      .PSEL2(PSEL2),
+      .PREADY1(PREADY1),
+       .PREADY2(PREADY2)
+  );
+
+  // Clock generation
+  always #5 PCLK = ~PCLK;
+
+  // Reset and stimulus logic
+  initial begin
+    $dumpfile("apb_wave.vcd");   // For GTKWave
+    $dumpvars(0, APB_tb);
+
+    // Initialize clock
+    PCLK = 0;
+    PRESETn = 0;
+    PRDATA=0;
+    // Hold reset
+    #20;
+    PRESETn = 1;
+     PRDATA =1;
+    // Allow internal APB master FSM to execute transactions
+    // Wait long enough for internal FSM to write to slave1 and read from slave2
+    #500;
+
+    $display("APB test complete.");
+    $finish;
+  end
