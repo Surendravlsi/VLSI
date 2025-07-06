@@ -1,0 +1,51 @@
+module APB_master(
+    input        PCLK,
+    input        PRESETn,
+    output reg [7:0] PADDR,
+    output reg       PWRITE,
+    output reg       PENABLE,
+    output reg [7:0] PWDATA,
+    output reg       PSEL1, PSEL2,
+    input      [7:0] PRDATA,
+    input            PREADY
+);
+    reg [3:0] state;
+
+    localparam IDLE  = 0,
+               SETUP = 1,
+               ENABLE = 2;
+
+    always @(posedge PCLK or negedge  PRESETn) begin
+        if (!PRESETn) begin
+            state <= IDLE;
+            PWRITE <= 0;
+            PENABLE <= 0;
+            PSEL1 <= 0;
+            PSEL2 <= 0;
+            PADDR <= 0;
+            PWDATA <= 0;
+        end else begin
+            case (state)
+                IDLE: begin
+                    PADDR <= 8'h10;
+                    PWDATA <= 8'hA5;
+                    PWRITE <= 1'b1;
+                    PSEL1 <= 1'b1;
+                    state <= SETUP;
+                end
+                SETUP: begin
+                    PENABLE <= 1;
+                    state <= ENABLE;
+                end
+
+                ENABLE: begin
+                    if (PREADY) begin
+                        PENABLE <= 0;
+                        PSEL1 <= 0;
+                        PWRITE <= 0;
+                        state <= IDLE;
+                    end
+                end
+            endcase
+        end
+    end
